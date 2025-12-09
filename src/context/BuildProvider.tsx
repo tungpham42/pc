@@ -9,6 +9,7 @@ import {
   Case,
   CPUCooler,
 } from "../types";
+import { getGpuTdp } from "../utils/gpuHelper";
 
 interface BuildState {
   cpu: CPU | null;
@@ -59,16 +60,42 @@ export const BuildProvider: React.FC<{ children: React.ReactNode }> = ({
     0
   );
 
-  // 1. Calculate Estimated Wattage (CPU TDP + GPU TDP + buffer)
-  const cpuTdp = build.cpu?.tdp || 0;
-  const gpuTdp = (build.gpu as any)?.tdp || 0; // Note: Ensure your GPU type has TDP in real data
-  const baseSystemDraw = 50; // Motherboard, fans, SSDs usually draw ~50W combined
-  const estimatedWattage = cpuTdp + gpuTdp + baseSystemDraw;
+  // --- DETAILED WATTAGE CALCULATION ---
 
-  // 2. Compatibility Logic
+  // 1. CPU
+  const cpuWatts = build.cpu?.tdp || 0;
+
+  // 2. GPU (Using Helper)
+  const gpuWatts = getGpuTdp(build.gpu);
+
+  // 3. Motherboard (VRMs, Chipset, Audio)
+  const moboWatts = build.motherboard ? 50 : 0;
+
+  // 4. RAM (Count sticks x 5W)
+  const ramStickCount = build.ram?.modules?.[0] || 0;
+  const ramWatts = ramStickCount * 5;
+
+  // 5. Storage (NVMe/SATA SSDs)
+  const storageWatts = build.storage ? 10 : 0;
+
+  // 6. Cooler (Pump + Fans)
+  const coolerWatts = build.cooler ? (build.cooler.water_cooled ? 15 : 5) : 0;
+
+  // 7. Case (Fans + Controllers)
+  const caseWatts = build.case ? 10 : 0;
+
+  const estimatedWattage =
+    cpuWatts +
+    gpuWatts +
+    moboWatts +
+    ramWatts +
+    storageWatts +
+    coolerWatts +
+    caseWatts;
+
+  // --- COMPATIBILITY CHECKS ---
   const compatibilityIssues: string[] = [];
 
-  // Socket Check
   if (
     build.cpu &&
     build.motherboard &&
@@ -79,14 +106,12 @@ export const BuildProvider: React.FC<{ children: React.ReactNode }> = ({
     );
   }
 
-  // PSU Wattage Check
   if (build.psu && build.psu.wattage < estimatedWattage) {
     compatibilityIssues.push(
       `Weak PSU: System needs ~${estimatedWattage}W, but PSU is only ${build.psu.wattage}W`
     );
   }
 
-  // Case Form Factor Check (Simple Logic)
   if (build.case && build.motherboard) {
     const moboForm = build.motherboard.form_factor.toLowerCase();
     const caseType = build.case.type.toLowerCase();

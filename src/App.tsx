@@ -108,6 +108,11 @@ const gpuCols = [
     width: 120,
   },
   {
+    title: "Color",
+    dataIndex: "color",
+    width: 100,
+  },
+  {
     title: "Price",
     dataIndex: "price",
     render: (v: number) => <span className="price-tag">${v}</span>,

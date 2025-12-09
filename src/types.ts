@@ -20,6 +20,8 @@ export interface GPU extends HardwarePart {
   memory: number;
   core_clock: number;
   boost_clock: number;
+  tdp?: number;
+  color?: string;
 }
 
 export interface Motherboard extends HardwarePart {
