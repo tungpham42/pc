@@ -9,21 +9,104 @@ import "./App.css";
 
 const { Header, Content } = Layout;
 
-// Define columns outside component to avoid recreation on render
+// --- 1. REF ACTORED COLUMN DEFINITIONS ---
+
 const cpuCols = [
   { title: "Model", dataIndex: "name", width: 250, ellipsis: true },
-  { title: "Cores", dataIndex: "core_count" },
-  { title: "Socket", dataIndex: "socket" },
+  { title: "Cores", dataIndex: "core_count", width: 80 },
+  {
+    title: "Base Clock",
+    dataIndex: "core_clock",
+    render: (v: number) => `${v} GHz`,
+    width: 110,
+  },
+  {
+    title: "Boost",
+    dataIndex: "boost_clock",
+    render: (v: number) => (v ? `${v} GHz` : "-"),
+    width: 110,
+  },
+  {
+    title: "TDP",
+    dataIndex: "tdp",
+    render: (v: number) => `${v} W`,
+    width: 80,
+  },
+  { title: "Socket", dataIndex: "socket", width: 100 },
   {
     title: "Price",
     dataIndex: "price",
-    render: (v: number) => <span className="price-tag">${v}</span>, // Added class
+    render: (v: number) => <span className="price-tag">${v}</span>,
+  },
+];
+
+const moboCols = [
+  { title: "Model", dataIndex: "name", width: 250, ellipsis: true },
+  { title: "Socket", dataIndex: "socket", width: 100 },
+  { title: "Form Factor", dataIndex: "form_factor", width: 120 },
+  {
+    title: "Max RAM",
+    dataIndex: "max_memory",
+    render: (v: number) => `${v} GB`,
+    width: 100,
+  },
+  { title: "Slots", dataIndex: "memory_slots", width: 80 },
+  {
+    title: "Price",
+    dataIndex: "price",
+    render: (v: number) => <span className="price-tag">${v}</span>,
+  },
+];
+
+const ramCols = [
+  { title: "Model", dataIndex: "name", width: 220, ellipsis: true },
+  { title: "Type", dataIndex: "type", width: 90 },
+  {
+    title: "Speed",
+    dataIndex: "speed",
+    render: (v: number) => `${v} MT/s`,
+    width: 110,
+  },
+  {
+    title: "Modules",
+    dataIndex: "modules",
+    render: (v: number[]) => `${v[0]}x${v[1]}GB`,
+    width: 100,
+  },
+  {
+    title: "CAS",
+    dataIndex: "cas_latency",
+    render: (v: number) => `C${v}`,
+    width: 80,
+  },
+  {
+    title: "Total",
+    dataIndex: "total_capacity",
+    render: (v: number) => <b>{v} GB</b>,
+    width: 90,
+  },
+  {
+    title: "Price",
+    dataIndex: "price",
+    render: (v: number) => <span className="price-tag">${v}</span>,
   },
 ];
 
 const gpuCols = [
   { title: "Model", dataIndex: "name", width: 250, ellipsis: true },
-  { title: "Memory", dataIndex: "memory", render: (v: number) => `${v} GB` },
+  { title: "Chipset", dataIndex: "chipset", width: 140 },
+  {
+    title: "VRAM",
+    dataIndex: "memory",
+    render: (v: number) => `${v} GB`,
+    width: 90,
+  },
+  {
+    title: "Boost Clock",
+    dataIndex: "boost_clock",
+    render: (v: number) => `${v} MHz`,
+    width: 120,
+  },
   {
     title: "Price",
     dataIndex: "price",
@@ -36,9 +119,12 @@ const storageCols = [
   {
     title: "Capacity",
     dataIndex: "capacity",
-    render: (v: number) => `${v} GB`,
+    render: (v: number) => (v >= 1000 ? `${v / 1000} TB` : `${v} GB`),
+    width: 100,
   },
-  { title: "Type", dataIndex: "type" },
+  { title: "Type", dataIndex: "type", width: 80 },
+  { title: "Form Factor", dataIndex: "form_factor", width: 120 },
+  { title: "Interface", dataIndex: "interface", width: 120 },
   {
     title: "Price",
     dataIndex: "price",
@@ -48,8 +134,14 @@ const storageCols = [
 
 const psuCols = [
   { title: "Model", dataIndex: "name", width: 250, ellipsis: true },
-  { title: "Wattage", dataIndex: "wattage", render: (v: number) => `${v} W` },
-  { title: "Modular", dataIndex: "modular" },
+  {
+    title: "Wattage",
+    dataIndex: "wattage",
+    render: (v: number) => `${v} W`,
+    width: 100,
+  },
+  { title: "Efficiency", dataIndex: "efficiency", width: 120 },
+  { title: "Modular", dataIndex: "modular", width: 100 },
   {
     title: "Price",
     dataIndex: "price",
@@ -59,7 +151,14 @@ const psuCols = [
 
 const caseCols = [
   { title: "Model", dataIndex: "name", width: 250, ellipsis: true },
-  { title: "Type", dataIndex: "type" },
+  { title: "Type", dataIndex: "type", width: 120 },
+  { title: "Color", dataIndex: "color", width: 100 },
+  {
+    title: "Volume",
+    dataIndex: "external_volume",
+    render: (v: number) => (v ? `${v} L` : "-"),
+    width: 90,
+  },
   {
     title: "Price",
     dataIndex: "price",
@@ -67,25 +166,47 @@ const caseCols = [
   },
 ];
 
-// --- INNER COMPONENT ---
+const coolerCols = [
+  { title: "Model", dataIndex: "name", width: 250, ellipsis: true },
+  {
+    title: "Fan RPM",
+    dataIndex: "rpm",
+    render: (v: number) => (v ? `${v} RPM` : "-"),
+    width: 130,
+  },
+  {
+    title: "Color",
+    dataIndex: "color",
+    width: 100,
+  },
+  {
+    title: "Noise",
+    dataIndex: "noise_level",
+    render: (v: number) => (v ? `${v} dBA` : "-"),
+    width: 120,
+  },
+  {
+    title: "Price",
+    dataIndex: "price",
+    render: (v: number) => <span className="price-tag">${v}</span>,
+  },
+];
+
+// --- 2. LAYOUT COMPONENT ---
+
 const PCBuilderLayout: React.FC = () => {
-  const { build } = useBuild(); // Access state for filtering
+  const { build } = useBuild();
 
-  // --- FILTER LOGIC ---
-
-  // 1. CPU Filter: Must match Motherboard Socket (if Mobo selected)
-  const filterCPU = (cpu: any) => {
-    if (!build.motherboard) return true;
-    return cpu.socket === build.motherboard.socket;
-  };
-  const filterMobo = (mobo: any) => {
-    if (!build.cpu) return true;
-    return mobo.socket === build.cpu.socket;
-  };
+  // Compatibility Filters
+  const filterCPU = (cpu: any) =>
+    !build.motherboard || cpu.socket === build.motherboard.socket;
+  const filterMobo = (mobo: any) =>
+    !build.cpu || mobo.socket === build.cpu.socket;
   const filterCase = (pcCase: any) => {
     if (!build.motherboard) return true;
     const moboForm = build.motherboard.form_factor.toLowerCase();
     const caseType = pcCase.type.toLowerCase();
+
     if (
       moboForm.includes("atx") &&
       !moboForm.includes("micro") &&
@@ -100,7 +221,7 @@ const PCBuilderLayout: React.FC = () => {
     if (moboForm.includes("micro")) {
       return !caseType.includes("itx");
     }
-    return true;
+    return true; // Mini ITX fits in almost everything
   };
 
   const items = [
@@ -125,15 +246,7 @@ const PCBuilderLayout: React.FC = () => {
           title="Motherboard"
           fetchData={fetchParts.getMotherboards}
           dataKey="motherboard"
-          columns={[
-            { title: "Model", dataIndex: "name" },
-            { title: "Socket", dataIndex: "socket" },
-            {
-              title: "Price",
-              dataIndex: "price",
-              render: (v: number) => <span className="price-tag">${v}</span>,
-            },
-          ]}
+          columns={moboCols}
           filterFn={filterMobo}
         />
       ),
@@ -146,15 +259,7 @@ const PCBuilderLayout: React.FC = () => {
           title="RAM"
           fetchData={fetchParts.getRAM}
           dataKey="ram"
-          columns={[
-            { title: "Model", dataIndex: "name" },
-            { title: "Speed", dataIndex: "speed" },
-            {
-              title: "Price",
-              dataIndex: "price",
-              render: (v: number) => <span className="price-tag">${v}</span>,
-            },
-          ]}
+          columns={ramCols}
         />
       ),
     },
@@ -167,6 +272,30 @@ const PCBuilderLayout: React.FC = () => {
           fetchData={fetchParts.getGPUs}
           dataKey="gpu"
           columns={gpuCols}
+        />
+      ),
+    },
+    {
+      key: "5",
+      label: "Storage",
+      children: (
+        <PartSelector
+          title="Storage"
+          fetchData={fetchParts.getStorage}
+          dataKey="storage"
+          columns={storageCols}
+        />
+      ),
+    },
+    {
+      key: "8",
+      label: "Power",
+      children: (
+        <PartSelector
+          title="PSU"
+          fetchData={fetchParts.getPowerSupplies}
+          dataKey="psu"
+          columns={psuCols}
         />
       ),
     },
@@ -184,18 +313,6 @@ const PCBuilderLayout: React.FC = () => {
       ),
     },
     {
-      key: "8",
-      label: "Power",
-      children: (
-        <PartSelector
-          title="PSU"
-          fetchData={fetchParts.getPowerSupplies}
-          dataKey="psu"
-          columns={psuCols}
-        />
-      ),
-    },
-    {
       key: "2",
       label: "Cooling",
       children: (
@@ -203,26 +320,7 @@ const PCBuilderLayout: React.FC = () => {
           title="CPU Cooler"
           fetchData={fetchParts.getCPUCoolers}
           dataKey="cooler"
-          columns={[
-            { title: "Model", dataIndex: "name" },
-            {
-              title: "Price",
-              dataIndex: "price",
-              render: (v: number) => <span className="price-tag">${v}</span>,
-            },
-          ]}
-        />
-      ),
-    },
-    {
-      key: "5",
-      label: "Storage",
-      children: (
-        <PartSelector
-          title="Storage"
-          fetchData={fetchParts.getStorage}
-          dataKey="storage"
-          columns={storageCols}
+          columns={coolerCols}
         />
       ),
     },
@@ -263,7 +361,6 @@ const PCBuilderLayout: React.FC = () => {
             />
           </Col>
           <Col span={7} lg={7} md={24} sm={24} xs={24}>
-            {/* Sticky Container for the summary */}
             <div style={{ position: "sticky", top: 100, marginTop: 24 }}>
               <BuildSummary />
             </div>

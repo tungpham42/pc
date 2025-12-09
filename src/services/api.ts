@@ -72,7 +72,38 @@ export const fetchParts = {
   // Standard Logic for other parts
   getGPUs: () => fetchAndFilter<GPU>("video-card.json"),
   getMotherboards: () => fetchAndFilter<Motherboard>("motherboard.json"),
-  getRAM: () => fetchAndFilter<RAM>("memory.json"),
+  getRAM: async (): Promise<RAM[]> => {
+    try {
+      const response = await axios.get(`${BASE_URL}/memory.json`);
+      const validItems = response.data.filter(
+        (item: any) => item.price !== null
+      );
+
+      const processedRAM = validItems.map((item: any) => {
+        // Parse Speed: [generation_id, speed] -> [4, 3200]
+        const generation = Array.isArray(item.speed)
+          ? `DDR${item.speed[0]}`
+          : "Unknown";
+        const clockSpeed = Array.isArray(item.speed) ? item.speed[1] : 0;
+
+        // Parse Modules: [count, size_per_stick] -> [2, 16]
+        const count = Array.isArray(item.modules) ? item.modules[0] : 0;
+        const size = Array.isArray(item.modules) ? item.modules[1] : 0;
+
+        return {
+          ...item,
+          speed: clockSpeed, // Now a clean number (e.g., 3200)
+          type: generation, // e.g., "DDR4"
+          total_capacity: count * size, // e.g., 32
+        };
+      });
+
+      return deduplicateParts(processedRAM);
+    } catch (error) {
+      console.error("Error fetching RAM", error);
+      return [];
+    }
+  },
   getStorage: () => fetchAndFilter<Storage>("internal-hard-drive.json"),
   getPowerSupplies: () => fetchAndFilter<PowerSupply>("power-supply.json"),
   getCases: () => fetchAndFilter<Case>("case.json"),
