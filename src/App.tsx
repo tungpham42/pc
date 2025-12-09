@@ -264,7 +264,7 @@ const PCBuilderLayout: React.FC = () => {
           </Col>
           <Col span={7} lg={7} md={24} sm={24} xs={24}>
             {/* Sticky Container for the summary */}
-            <div style={{ position: "sticky", top: 100 }}>
+            <div style={{ position: "sticky", top: 100, marginTop: 24 }}>
               <BuildSummary />
             </div>
           </Col>
