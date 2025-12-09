@@ -96,6 +96,37 @@ export const PartSelector: React.FC<PartSelectorProps> = ({
     },
   };
 
+  // 4. Enhance Columns with Automatic Sorting
+  // We map over the passed columns and add a default sorter if the column has a dataIndex
+  const tableColumns = [
+    ...columns.map((col) => {
+      // If the parent already defined a sorter, or there is no dataIndex to sort by, leave it alone
+      if (col.sorter || !col.dataIndex) return col;
+
+      return {
+        ...col,
+        sorter: (a: any, b: any) => {
+          const valA = a[col.dataIndex];
+          const valB = b[col.dataIndex];
+
+          // Handle Number Sorting
+          if (typeof valA === "number" && typeof valB === "number") {
+            return valA - valB;
+          }
+
+          // Handle String Sorting
+          if (typeof valA === "string" && typeof valB === "string") {
+            return valA.localeCompare(valB);
+          }
+
+          // Fallback (e.g. mixed types or nulls)
+          return (valA || "") > (valB || "") ? 1 : -1;
+        },
+      };
+    }),
+    actionColumn,
+  ];
+
   return (
     <Card
       title={`${title}`} // Simplified title
@@ -126,7 +157,7 @@ export const PartSelector: React.FC<PartSelectorProps> = ({
         />
         <Table
           dataSource={filteredData}
-          columns={[...columns, actionColumn]}
+          columns={tableColumns} // Use the new enhanced columns
           loading={loading}
           rowKey={(record) =>
             record.id || `${record.manufacturer}-${record.name}`
