@@ -4,13 +4,14 @@ import {
   List,
   Typography,
   Alert,
-  Statistic,
   Button,
   Divider,
   Modal,
   Descriptions,
   message,
   Tooltip,
+  Progress,
+  Tag,
 } from "antd";
 import { useBuild } from "../context/BuildProvider";
 import {
@@ -19,6 +20,9 @@ import {
   DownloadOutlined,
   CopyOutlined,
   CheckCircleOutlined,
+  SafetyCertificateOutlined,
+  WarningOutlined,
+  InfoCircleOutlined,
 } from "@ant-design/icons";
 
 const { Text } = Typography;
@@ -34,27 +38,32 @@ export const BuildSummary: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // 1. Define what constitutes a "Essential" build
-  // Note: Cooler and GPU are sometimes optional (included stock cooler / iGPU),
-  // but you can add them here if you want to enforce them.
+  // 1. ADDED: 'cooler' to the required list
   const requiredParts = [
     { key: "cpu", label: "CPU" },
+    { key: "cooler", label: "Cooler" },
     { key: "motherboard", label: "Motherboard" },
     { key: "ram", label: "RAM" },
     { key: "storage", label: "Storage" },
+    { key: "gpu", label: "GPU" },
     { key: "psu", label: "PSU" },
     { key: "case", label: "Case" },
   ];
 
-  // 2. Calculate missing parts
+  // 2. LOGIC: Calculate completed AND missing parts
+  const completedParts = requiredParts.filter(
+    (p) => build[p.key as keyof typeof build]
+  );
   const missingParts = requiredParts.filter(
-    (part) => !build[part.key as keyof typeof build]
+    (p) => !build[p.key as keyof typeof build]
   );
 
-  const isBuildComplete = missingParts.length === 0;
-  const hasErrors = compatibilityIssues.length > 0;
+  const progressPercent = Math.round(
+    (completedParts.length / requiredParts.length) * 100
+  );
 
-  // Disable if there are errors OR missing parts
+  const isBuildComplete = progressPercent === 100;
+  const hasErrors = compatibilityIssues.length > 0;
   const isFinalizeDisabled = hasErrors || !isBuildComplete;
 
   const data = Object.entries(build).map(([key, value]) => ({
@@ -96,115 +105,214 @@ export const BuildSummary: React.FC = () => {
   return (
     <>
       <Card
-        title="Your PC Build"
-        className="shadow-md"
-        style={{ marginTop: 16 }}
+        title={
+          <span>
+            <SafetyCertificateOutlined /> SYSTEM STATUS
+          </span>
+        }
+        className="tech-card"
+        bordered={false}
       >
+        {/* Progress Bar */}
+        <div style={{ marginBottom: 20 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: 5,
+            }}
+          >
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              COMPLETION
+            </Text>
+            <Text style={{ fontFamily: "JetBrains Mono" }}>
+              {progressPercent}%
+            </Text>
+          </div>
+          <Progress
+            percent={progressPercent}
+            showInfo={false}
+            strokeColor={{ "0%": "#bc13fe", "100%": "#00f3ff" }}
+            trailColor="#333"
+          />
+        </div>
+
+        {/* 3. NEW: Explicitly show missing parts if incomplete */}
+        {!isBuildComplete && compatibilityIssues.length === 0 && (
+          <Alert
+            message={
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                <Text
+                  strong
+                  style={{ fontSize: 11, color: "#faad14", marginRight: 5 }}
+                >
+                  MISSING:
+                </Text>
+                {missingParts.map((part) => (
+                  <Tag
+                    key={part.key}
+                    color="warning"
+                    style={{ margin: 0, fontSize: 10, border: "none" }}
+                  >
+                    {part.label.toUpperCase()}
+                  </Tag>
+                ))}
+              </div>
+            }
+            type="warning"
+            showIcon
+            icon={<InfoCircleOutlined />}
+            style={{
+              marginBottom: 10,
+              background: "rgba(250, 173, 20, 0.1)",
+              border: "1px solid #5a4a11",
+            }}
+          />
+        )}
+
         {/* Warnings */}
         {compatibilityIssues.map((issue, idx) => (
           <Alert
             key={idx}
-            message={issue}
+            message={<span style={{ fontSize: 12 }}>{issue}</span>}
             type="error"
             showIcon
-            style={{ marginBottom: 16 }}
+            icon={<WarningOutlined />}
+            style={{
+              marginBottom: 10,
+              background: "rgba(255, 77, 79, 0.1)",
+              border: "1px solid #5a1111",
+            }}
           />
         ))}
 
-        {/* Missing Parts Warning (Optional visual cue) */}
-        {!isBuildComplete && compatibilityIssues.length === 0 && (
-          <Alert
-            message="Incomplete Build"
-            description={`Missing: ${missingParts
-              .map((p) => p.label)
-              .join(", ")}`}
-            type="info"
-            showIcon
-            style={{ marginBottom: 16 }}
-          />
-        )}
+        {/* Parts List */}
+        <div style={{ maxHeight: "300px", overflowY: "auto", paddingRight: 5 }}>
+          <List
+            itemLayout="horizontal"
+            dataSource={data}
+            split={false}
+            renderItem={(item) => (
+              <List.Item
+                style={{
+                  padding: "8px 0",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <div style={{ width: 30, flexShrink: 0 }}>
+                  {item.name !== "Not Selected" && (
+                    <Button
+                      type="text"
+                      size="small"
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={() => removePart(item.key as any)}
+                    />
+                  )}
+                </div>
 
-        <List
-          itemLayout="horizontal"
-          dataSource={data}
-          renderItem={(item) => (
-            <List.Item
-              actions={[
-                item.name !== "Not Selected" && (
-                  <Button
-                    type="text"
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => removePart(item.key as any)}
-                  />
-                ),
-              ]}
-            >
-              <List.Item.Meta
-                title={
-                  <Text strong style={{ fontSize: "12px" }}>
-                    {item.type}
-                  </Text>
-                }
-                description={
-                  <Text ellipsis style={{ maxWidth: 200 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Text
+                      style={{ fontSize: 10, color: "#888", letterSpacing: 1 }}
+                    >
+                      {item.type}
+                    </Text>
+                    {item.price > 0 && (
+                      <Text
+                        style={{
+                          fontFamily: "JetBrains Mono",
+                          color: "#00f3ff",
+                        }}
+                      >
+                        ${item.price}
+                      </Text>
+                    )}
+                  </div>
+                  <Text
+                    ellipsis={{ tooltip: item.name }}
+                    style={{
+                      color: item.name === "Not Selected" ? "#444" : "#e0e0e0",
+                      fontSize: 13,
+                    }}
+                  >
                     {item.name}
                   </Text>
-                }
-              />
-              <div>${item.price.toFixed(2)}</div>
-            </List.Item>
-          )}
-        />
+                </div>
+              </List.Item>
+            )}
+          />
+        </div>
 
-        <Divider />
+        <Divider style={{ borderColor: "#333" }} />
 
-        <div style={{ textAlign: "right" }}>
+        {/* Footer Stats */}
+        <div>
           <div
             style={{
-              marginBottom: 15,
               display: "flex",
-              justifyContent: "flex-end",
+              justifyContent: "space-between",
               alignItems: "center",
-              gap: "10px",
+              marginBottom: 10,
             }}
           >
-            <ThunderboltFilled style={{ color: "#faad14" }} />
-            <Text type="secondary">Est. Wattage:</Text>
-            <Text strong>{estimatedWattage} W</Text>
+            <Text type="secondary">
+              <ThunderboltFilled style={{ color: "#faad14" }} /> LOAD
+            </Text>
+            <Text strong style={{ fontFamily: "JetBrains Mono", fontSize: 16 }}>
+              {estimatedWattage} W
+            </Text>
           </div>
 
-          <Statistic
-            title="Total Estimate"
-            value={totalCost}
-            precision={2}
-            prefix="$"
-          />
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}
+          >
+            <Text type="secondary">TOTAL</Text>
+            <Text
+              strong
+              style={{
+                fontFamily: "JetBrains Mono",
+                fontSize: 24,
+                color: "#fff",
+              }}
+            >
+              ${totalCost.toFixed(2)}
+            </Text>
+          </div>
 
-          {/* 3. Button with Tooltip explaining why it is disabled */}
           <Tooltip
             title={
               hasErrors
-                ? "Fix compatibility issues"
+                ? "Fix issues first"
                 : !isBuildComplete
-                ? "Add all main parts to finalize"
-                : ""
+                ? "Finish selection"
+                : "Ready to build"
             }
           >
             <Button
+              className="finalize-btn"
               type="primary"
               size="large"
-              style={{ marginTop: 15, width: "100%" }}
-              disabled={isFinalizeDisabled} // <--- Logic applied here
+              block
+              disabled={isFinalizeDisabled}
               onClick={handleFinalize}
+              style={{ height: 50, fontWeight: "bold", letterSpacing: 1 }}
             >
-              Finalize Build
+              INITIALIZE BUILD
             </Button>
           </Tooltip>
         </div>
       </Card>
 
-      {/* Modal Code (No changes needed here, kept for completeness) */}
+      {/* Finalize Modal */}
       <Modal
         title={
           <span>

@@ -25,7 +25,7 @@ export const PartSelector: React.FC<PartSelectorProps> = ({
   fetchData,
   dataKey,
   columns,
-  filterFn, // Destructure new prop
+  filterFn,
 }) => {
   const [data, setData] = useState<any[]>([]);
   const [displayData, setDisplayData] = useState<any[]>([]); // Data after API load + Compatibility Filter
@@ -98,34 +98,50 @@ export const PartSelector: React.FC<PartSelectorProps> = ({
 
   return (
     <Card
-      title={`${title} Selection`}
+      title={`${title}`} // Simplified title
+      className="tech-card" // New class
       extra={
-        <Tag color={filteredData.length < data.length ? "orange" : "blue"}>
-          {filteredData.length} items {filterFn ? "(Compatible)" : ""}
+        <Tag
+          color={filteredData.length < data.length ? "orange" : "cyan"}
+          style={{ fontFamily: "JetBrains Mono" }}
+        >
+          {filteredData.length} UNITS
         </Tag>
       }
-      style={{ minHeight: 400 }}
+      style={{ minHeight: 400, border: "none" }}
     >
-      <Space orientation="vertical" style={{ width: "100%" }}>
+      <Space orientation="vertical" style={{ width: "100%" }} size="middle">
         <Input
-          placeholder={`Search ${title}...`}
-          prefix={<SearchOutlined />}
+          placeholder={`Search ${title} database...`}
+          prefix={<SearchOutlined style={{ color: "#00f3ff" }} />}
           value={searchText}
           onChange={handleSearch}
-          style={{ marginBottom: 16 }}
           allowClear
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid #333",
+            color: "white",
+            padding: "8px 12px",
+          }}
         />
         <Table
           dataSource={filteredData}
           columns={[...columns, actionColumn]}
           loading={loading}
-          rowKey={(record) => record.id || record.name}
-          pagination={{ showSizeChanger: true }}
+          rowKey={(record) =>
+            record.id || `${record.manufacturer}-${record.name}`
+          }
+          pagination={{ position: ["bottomRight"] }}
           scroll={{ x: true }}
           locale={{
-            emptyText: <Empty description="No compatible parts found" />,
+            emptyText: (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="NO COMPATIBLE UNITS"
+              />
+            ),
           }}
-          size="middle"
+          size="small" // Compact view
         />
       </Space>
     </Card>
