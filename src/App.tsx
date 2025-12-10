@@ -1,10 +1,18 @@
 import React from "react";
-import { Layout, Row, Col, Tabs, ConfigProvider, theme } from "antd";
+import {
+  Layout,
+  Row,
+  Col,
+  Tabs,
+  ConfigProvider,
+  theme,
+  FloatButton,
+} from "antd";
 import { BuildProvider, useBuild } from "./context/BuildProvider";
 import { PartSelector } from "./components/PartSelector";
 import { BuildSummary } from "./components/BuildSummary";
 import { fetchParts } from "./services/api";
-import { RocketOutlined } from "@ant-design/icons";
+import { RocketOutlined, VerticalAlignTopOutlined } from "@ant-design/icons";
 import "./App.css";
 
 const { Header, Content } = Layout;
@@ -455,6 +463,12 @@ const PCBuilderLayout: React.FC = () => {
           </Col>
         </Row>
       </Content>
+      <FloatButton.BackTop
+        type="primary"
+        style={{ right: 24, bottom: 24 }}
+        icon={<VerticalAlignTopOutlined />}
+        tooltip="Back to Top"
+      />
     </Layout>
   );
 };
