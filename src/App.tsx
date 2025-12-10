@@ -34,6 +34,13 @@ const cpuCols = [
   },
   { title: "Socket", dataIndex: "socket", width: 100 },
   {
+    title: "Graphics",
+    dataIndex: "graphics",
+    width: 150,
+    ellipsis: true,
+    render: (v: string) => (v ? v : "-"),
+  },
+  {
     title: "Price",
     dataIndex: "price",
     render: (v: number) => <span className="price-tag">${v}</span>,
@@ -50,7 +57,18 @@ const moboCols = [
     render: (v: number) => `${v} GB`,
     width: 100,
   },
-  { title: "Slots", dataIndex: "memory_slots", width: 80 },
+  {
+    title: "Slots",
+    dataIndex: "memory_slots",
+    width: 80,
+    render: (v: number) => (v ? v : "-"),
+  },
+  {
+    title: "Color",
+    dataIndex: "color",
+    width: 100,
+    render: (v: string) => (v ? v : "-"),
+  },
   {
     title: "Price",
     dataIndex: "price",
@@ -64,7 +82,7 @@ const ramCols = [
   {
     title: "Speed",
     dataIndex: "speed",
-    render: (v: number) => `${v} MT/s`,
+    render: (v: number) => `${v} MHz`,
     width: 110,
   },
   {
@@ -74,16 +92,22 @@ const ramCols = [
     width: 100,
   },
   {
+    title: "Total",
+    dataIndex: "total_capacity",
+    render: (v: number) => <b>{v} GB</b>,
+    width: 90,
+  },
+  {
     title: "CAS",
     dataIndex: "cas_latency",
     render: (v: number) => `C${v}`,
     width: 80,
   },
   {
-    title: "Total",
-    dataIndex: "total_capacity",
-    render: (v: number) => <b>{v} GB</b>,
-    width: 90,
+    title: "Color",
+    dataIndex: "color",
+    width: 100,
+    render: (v: string) => (v ? v : "-"),
   },
   {
     title: "Price",
@@ -102,15 +126,22 @@ const gpuCols = [
     width: 90,
   },
   {
+    title: "Core Clock",
+    dataIndex: "core_clock",
+    render: (v: number) => (v ? `${v} MHz` : "-"),
+    width: 120,
+  },
+  {
     title: "Boost Clock",
     dataIndex: "boost_clock",
-    render: (v: number) => `${v} MHz`,
+    render: (v: number) => (v ? `${v} MHz` : "-"),
     width: 120,
   },
   {
     title: "Color",
     dataIndex: "color",
     width: 100,
+    render: (v: string) => (v ? v : "-"),
   },
   {
     title: "Price",
@@ -127,9 +158,26 @@ const storageCols = [
     render: (v: number) => (v >= 1000 ? `${v / 1000} TB` : `${v} GB`),
     width: 100,
   },
-  { title: "Type", dataIndex: "type", width: 80 },
+  {
+    title: "Type",
+    dataIndex: "type",
+    width: 80,
+    render: (v: string) => (v ? v : "-"),
+  },
   { title: "Form Factor", dataIndex: "form_factor", width: 120 },
   { title: "Interface", dataIndex: "interface", width: 120 },
+  {
+    title: "Price/GB",
+    dataIndex: "price_per_gb",
+    width: 100,
+    render: (v: number) => (v ? `$${v.toFixed(4)}` : "-"),
+  },
+  {
+    title: "Cache",
+    dataIndex: "cache",
+    width: 100,
+    render: (v: number) => (v ? `${v} MB` : "-"),
+  },
   {
     title: "Price",
     dataIndex: "price",
@@ -145,8 +193,19 @@ const psuCols = [
     render: (v: number) => `${v} W`,
     width: 100,
   },
-  { title: "Efficiency", dataIndex: "efficiency", width: 120 },
-  { title: "Modular", dataIndex: "modular", width: 100 },
+  { title: "Type", dataIndex: "type", width: 120 },
+  {
+    title: "Efficiency",
+    dataIndex: "efficiency",
+    width: 120,
+    render: (v: string) => (v ? v.toUpperCase() : "-"),
+  },
+  {
+    title: "Modular",
+    dataIndex: "modular",
+    width: 100,
+    render: (v: string) => (v ? v.toUpperCase() : "-"),
+  },
   {
     title: "Price",
     dataIndex: "price",
@@ -157,12 +216,29 @@ const psuCols = [
 const caseCols = [
   { title: "Model", dataIndex: "name", width: 250, ellipsis: true },
   { title: "Type", dataIndex: "type", width: 120 },
-  { title: "Color", dataIndex: "color", width: 100 },
+  {
+    title: "Color",
+    dataIndex: "color",
+    width: 100,
+    render: (v: string) => (v ? v : "-"),
+  },
   {
     title: "Volume",
     dataIndex: "external_volume",
     render: (v: number) => (v ? `${v} L` : "-"),
     width: 90,
+  },
+  {
+    title: "PSU",
+    dataIndex: "psu",
+    width: 150,
+    render: (v: string) => (v ? v : "-"),
+  },
+  {
+    title: "Side Panel",
+    dataIndex: "side_panel",
+    width: 130,
+    render: (v: string) => (v ? v : "-"),
   },
   {
     title: "Price",
@@ -183,12 +259,19 @@ const coolerCols = [
     title: "Color",
     dataIndex: "color",
     width: 100,
+    render: (v: string) => (v ? v : "-"),
   },
   {
     title: "Noise",
     dataIndex: "noise_level",
     render: (v: number) => (v ? `${v} dBA` : "-"),
     width: 120,
+  },
+  {
+    title: "Size",
+    dataIndex: "size",
+    width: 100,
+    render: (v: boolean) => (v ? `${v} mm` : "-"),
   },
   {
     title: "Price",

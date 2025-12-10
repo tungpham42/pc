@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Card, Input, Space, Empty, Tag } from "antd";
-import { SearchOutlined, PlusOutlined, CheckOutlined } from "@ant-design/icons";
+import {
+  SearchOutlined,
+  PlusOutlined,
+  CheckOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
 import { useBuild } from "../context/BuildProvider";
 
 interface PartSelectorProps {
@@ -30,9 +35,10 @@ export const PartSelector: React.FC<PartSelectorProps> = ({
   const [displayData, setDisplayData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
-
-  // 1. New State for Pagination
   const [currentPage, setCurrentPage] = useState(1);
+
+  // 1. New State for Sort Info
+  const [sortedInfo, setSortedInfo] = useState<any>({});
 
   const { setPart, build } = useBuild();
 
@@ -76,8 +82,19 @@ export const PartSelector: React.FC<PartSelectorProps> = ({
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value);
-    // 2. Reset to Page 1 on search
     setCurrentPage(1);
+  };
+
+  // 2. Updated Reset Logic
+  const handleReset = () => {
+    setSearchText("");
+    setCurrentPage(1);
+    setSortedInfo({}); // Clear sort state
+  };
+
+  // 3. Handle Table Changes (Sorting)
+  const handleChange = (pagination: any, filters: any, sorter: any) => {
+    setSortedInfo(sorter);
   };
 
   const actionColumn = {
@@ -101,13 +118,13 @@ export const PartSelector: React.FC<PartSelectorProps> = ({
     },
   };
 
+  // 4. Update Columns to respect Sort State
   const tableColumns = [
     ...columns.map((col) => {
-      if (col.sorter || !col.dataIndex) return col;
-
-      return {
-        ...col,
-        sorter: (a: any, b: any) => {
+      // Define specific sorter logic if not present
+      let sorter = col.sorter;
+      if (!sorter && col.dataIndex) {
+        sorter = (a: any, b: any) => {
           const valA = a[col.dataIndex];
           const valB = b[col.dataIndex];
 
@@ -118,7 +135,17 @@ export const PartSelector: React.FC<PartSelectorProps> = ({
             return valA.localeCompare(valB);
           }
           return (valA || "") > (valB || "") ? 1 : -1;
-        },
+        };
+      }
+
+      return {
+        ...col,
+        sorter,
+        // Check if this column is the active sorter
+        sortOrder:
+          sortedInfo.columnKey === col.key || sortedInfo.field === col.dataIndex
+            ? sortedInfo.order
+            : null,
       };
     }),
     actionColumn,
@@ -139,27 +166,44 @@ export const PartSelector: React.FC<PartSelectorProps> = ({
       style={{ minHeight: 400, border: "none" }}
     >
       <Space orientation="vertical" style={{ width: "100%" }} size="middle">
-        <Input
-          placeholder={`Search ${title} database...`}
-          prefix={<SearchOutlined style={{ color: "#00f3ff" }} />}
-          value={searchText}
-          onChange={handleSearch}
-          allowClear
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid #333",
-            color: "white",
-            padding: "8px 12px",
-          }}
-        />
+        <div style={{ display: "flex", gap: "8px" }}>
+          <Input
+            placeholder={`Search ${title} database...`}
+            prefix={<SearchOutlined style={{ color: "#00f3ff" }} />}
+            value={searchText}
+            onChange={handleSearch}
+            allowClear
+            style={{
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid #333",
+              color: "white",
+              padding: "8px 12px",
+              flex: 1,
+            }}
+          />
+          <Button
+            size="large"
+            onClick={handleReset}
+            icon={<ReloadOutlined />}
+            style={{
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid #333",
+              color: "white",
+            }}
+          >
+            Reset
+          </Button>
+        </div>
+
         <Table
           dataSource={filteredData}
           columns={tableColumns}
           loading={loading}
+          // 5. Connect onChange handler
+          onChange={handleChange}
           rowKey={(record) =>
             record.id || `${record.manufacturer}-${record.name}`
           }
-          // 3. Control Pagination
           pagination={{
             current: currentPage,
             position: ["bottomRight"],

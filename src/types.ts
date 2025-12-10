@@ -29,6 +29,7 @@ export interface Motherboard extends HardwarePart {
   form_factor: string;
   max_memory: number;
   memory_slots: number;
+  color: string;
 }
 
 export interface RAM extends HardwarePart {
@@ -46,11 +47,14 @@ export interface Storage extends HardwarePart {
   capacity: number;
   type: "SSD" | "HDD";
   interface: string;
+  price_per_gb: number;
+  cache?: number;
   form_factor: string;
 }
 
 export interface PowerSupply extends HardwarePart {
   wattage: number;
+  type: string;
   efficiency: string;
   modular: string;
 }
@@ -58,6 +62,8 @@ export interface PowerSupply extends HardwarePart {
 export interface Case extends HardwarePart {
   type: string;
   color: string;
+  psu?: string;
+  side_panel: string;
   external_volume: number;
   internal_35_bays: number;
 }
@@ -67,4 +73,5 @@ export interface CPUCooler extends HardwarePart {
   noise_level?: number;
   water_cooled?: boolean;
   color?: string;
+  size?: string;
 }
