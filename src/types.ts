@@ -11,6 +11,7 @@ export interface CPU extends HardwarePart {
   core_clock: number;
   boost_clock: number;
   tdp: number;
+  microarchitecture: string;
   graphics?: string;
   socket: string;
 }

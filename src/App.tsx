@@ -42,6 +42,12 @@ const cpuCols = [
   },
   { title: "Socket", dataIndex: "socket", width: 100 },
   {
+    title: "Microarchitecture",
+    dataIndex: "microarchitecture",
+    width: 150,
+    render: (v: string) => (v ? v : "-"),
+  },
+  {
     title: "Graphics",
     dataIndex: "graphics",
     width: 150,
